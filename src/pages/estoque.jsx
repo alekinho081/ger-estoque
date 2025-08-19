@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const styles = {
   table: {
@@ -40,6 +40,35 @@ const styles = {
     color: "#777",
     fontStyle: "italic",
   },
+  form: {
+    display: "flex",
+    gap: "10px",
+    marginBottom: "20px",
+    padding: "15px",
+    backgroundColor: "#f0f0f0",
+    borderRadius: "5px",
+  },
+  input: {
+    padding: "8px",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    fontSize: "14px",
+  },
+  button: {
+    padding: "8px 15px",
+    backgroundColor: "#4CAF50",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+  },
+  container: {
+    padding: "20px",
+  },
+  title: {
+    textAlign: "center",
+    marginBottom: "20px",
+  }
 };
 
 function TabelaEstoque({ dados }) {
@@ -62,7 +91,14 @@ function TabelaEstoque({ dados }) {
               <td style={styles.td}>{entrada}</td>
               <td style={styles.td}>{saida}</td>
               <td style={styles.td}>{saldo}</td>
-              <td style={{ ...styles.td, ...styles.lastTd }}>{situacao}</td>
+              <td style={{ 
+                ...styles.td, 
+                ...styles.lastTd,
+                color: situacao === "OK" ? "#4CAF50" : "#f44336",
+                fontWeight: "bold"
+              }}>
+                {situacao}
+              </td>
             </tr>
           ))
         ) : (
@@ -82,46 +118,40 @@ export function PageEstoque() {
   const [prodNome, setProdNome] = useState("");
   const [qtdProduto, setQtdProd] = useState("");
 
-  function handleButton(e) {
-    e.preventDefault();
 
-    if (!prodNome || !qtdProduto) return;
-
-    const entrada = Number(qtdProduto);
-    const saida = 0;
-    const saldo = entrada - saida;
-    const situacao = saldo > 10 ? "OK" : "COMPRAR";
-
-    setProdutos((prev) => [
-      ...prev,
-      { produto: prodNome, entrada, saida, saldo, situacao },
-    ]);
-
-    setProdNome("");
-    setQtdProd("");
-  }
+  useEffect(() => {
+    const lancamentos = JSON.parse(localStorage.getItem("lancamentosEstoque") || "[]");
+  
+    const produtosMap = {};
+    
+    lancamentos.forEach(lancamento => {
+      if (!produtosMap[lancamento.produto]) {
+        produtosMap[lancamento.produto] = { entrada: 0, saida: 0 };
+      }
+      
+      if (lancamento.tipo === "entrada") {
+        produtosMap[lancamento.produto].entrada += parseInt(lancamento.quantidade);
+      } else {
+        produtosMap[lancamento.produto].saida += parseInt(lancamento.quantidade);
+      }
+    });
+    
+    const produtosArray = Object.keys(produtosMap).map(produto => {
+      const entrada = produtosMap[produto].entrada;
+      const saida = produtosMap[produto].saida;
+      const saldo = entrada - saida;
+      const situacao = saldo > 10 ? "OK" : "COMPRAR";
+      
+      return { produto, entrada, saida, saldo, situacao };
+    });
+    
+    setProdutos(produtosArray);
+  }, []);
 
   return (
-    <div>
+    <div style={styles.container}>
       <section>
-        <h2>GERENCIAMENTO DE ESTOQUE</h2>
-        <p>{produtos.prodNome}</p>
-      </section>
-      <section>
-        <form onSubmit={handleButton}>
-          <input
-            placeholder={"Nome"}
-            value={prodNome}
-            onChange={(e) => setProdNome(e.target.value)}
-          />
-          <input
-            placeholder={"Quantidade"}
-            value={qtdProduto}
-            onChange={(e) => setQtdProd(e.target.value)}
-            type="number"
-          />
-          <button type={"submit"}>Enviar</button>
-        </form>
+        
       </section>
 
       <TabelaEstoque dados={produtos} />
