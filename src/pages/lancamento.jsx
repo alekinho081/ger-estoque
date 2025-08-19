@@ -137,6 +137,13 @@ export const PageLancamento = () => {
         localStorage.setItem("lancamentosEstoque", JSON.stringify(produtos));
     }, [produtos]);
 
+    function transformaTexto(texto){
+        return texto
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toUpperCase()
+    }
+
     function handleSubmit(e) {
         e.preventDefault();
 
@@ -192,7 +199,7 @@ export const PageLancamento = () => {
                     <input
                         placeholder={"Produto"}
                         value={produto}
-                        onChange={(e) => setProduto(e.target.value)}
+                        onChange={(e) => setProduto(transformaTexto(e.target.value))}
                         type="text"
                         style={styles.input}
                         required
