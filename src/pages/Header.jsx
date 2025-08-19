@@ -12,10 +12,8 @@ export const  Header = () => {
     console.log(currentPath)
 
     return (
-        <header>
+        <header style={{justifyContent:'space-evenly', display:'flex', flexDirection:'row'}}>
             <h1>Controle de Estoque</h1>
-
-            
             {currentPath  === '/' ? console.log('legal') : <button onClick={() => {navigate(-1)}}> Voltar</button> }
         </header>
     )

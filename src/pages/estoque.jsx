@@ -77,7 +77,7 @@ function TabelaEstoque({ dados }) {
   );
 }
 
-function PageEstoque() {
+export function PageEstoque() {
   const [produtos, setProdutos] = useState([]);
   const [prodNome, setProdNome] = useState("");
   const [qtdProduto, setQtdProd] = useState("");
