@@ -1,19 +1,13 @@
 import React from "react";
 
 
+export const PageLancamento = () => {
 
+    return (
+        <div>
 
-function ControleEstoque(){
-    return(
-    <div>
-        <section>
-            <form onsub>
-            <input type="text" onChange={''} />
-            <button type="submit">Enviar</button>
-            </form>
-        </section>
-    </div>
-);
+        </div>
+    )
 }
 
-export default ControleEstoque
+export default PageLancamento
