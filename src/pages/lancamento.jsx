@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const styles = {
     table: {
@@ -40,8 +40,18 @@ const styles = {
         color: "#777",
         fontStyle: "italic",
     },
+    form: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "10px",
+        maxWidth: "50%",
+        margin: "20px auto",
+        padding: "20px",
+        backgroundColor: "#f9f9f9",
+        borderRadius: "8px",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+    },
     input: {
-        
         padding: "10px",
         border: "1px solid #ddd",
         borderRadius: "4px",
@@ -63,6 +73,17 @@ const styles = {
         cursor: "pointer",
         fontSize: "16px",
         fontWeight: "bold",
+    },
+    clearButton: {
+        padding: "10px 15px",
+        backgroundColor: "#f44336",
+        color: "white",
+        border: "none",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "16px",
+        fontWeight: "bold",
+        marginTop: "10px",
     }
 };
 
@@ -102,41 +123,54 @@ export const PageLancamento = () => {
         );
     }
 
-    const [produtos, setProdutos] = useState([]);
+    const [produtos, setProdutos] = useState(() => {
+        const saved = localStorage.getItem("lancamentosEstoque");
+        return saved ? JSON.parse(saved) : [];
+    });
+    
     const [descricao, setDescricao] = useState("compra");
     const [produto, setProduto] = useState("");
     const [quantidade, setQuantidade] = useState("");
     const [tipo, setTipo] = useState("entrada");
 
+    useEffect(() => {
+        localStorage.setItem("lancamentosEstoque", JSON.stringify(produtos));
+    }, [produtos]);
+
+    function transformaTexto(texto){
+        return texto
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toUpperCase()
+    }
+
     function handleSubmit(e) {
         e.preventDefault();
-        
+
         const dataAtual = new Date();
-        const dataFormatada = `${dataAtual.getDate().toString().padStart(2, '0')}/${
-            (dataAtual.getMonth() + 1).toString().padStart(2, '0')}/${
-            dataAtual.getFullYear()} ${
-            dataAtual.getHours().toString().padStart(2, '0')}:${
-            dataAtual.getMinutes().toString().padStart(2, '0')}`;
+        const dataFormatada = `${dataAtual.getDate().toString().padStart(2, '0')}/${(dataAtual.getMonth() + 1).toString().padStart(2, '0')}/${dataAtual.getFullYear()} ${dataAtual.getHours().toString().padStart(2, '0')}:${dataAtual.getMinutes().toString().padStart(2, '0')}`;
 
         if (!produto || !quantidade) return;
 
-        setProdutos((prev) => [
-            ...prev,
-            { 
-                data: dataFormatada, 
-                tipo, 
-                descricao, 
-                produto, 
-                quantidade 
-            },
-        ]);
+        const novoLancamento = {
+            data: dataFormatada,
+            tipo,
+            descricao,
+            produto,
+            quantidade: parseInt(quantidade)
+        };
 
-
-        
+        setProdutos((prev) => [...prev, novoLancamento]);
         setDescricao("compra");
         setTipo("entrada");
         setProduto("");
         setQuantidade("");
+    }
+
+    function limparLancamentos() {
+        if (window.confirm("Tem certeza que deseja limpar todos os lançamentos?")) {
+            setProdutos([]);
+        }
     }
 
     return (
@@ -151,7 +185,7 @@ export const PageLancamento = () => {
                         <option value="entrada">Entrada</option>
                         <option value="saída">Saída</option>
                     </select>
-                    
+
                     <select
                         value={descricao}
                         onChange={(e) => setDescricao(e.target.value)}
@@ -161,16 +195,16 @@ export const PageLancamento = () => {
                         <option value="venda">Venda</option>
                         <option value="devolucao">Devolução</option>
                     </select>
-                    
+
                     <input
                         placeholder={"Produto"}
                         value={produto}
-                        onChange={(e) => setProduto(e.target.value)}
+                        onChange={(e) => setProduto(transformaTexto(e.target.value))}
                         type="text"
                         style={styles.input}
                         required
                     />
-                    
+
                     <input
                         placeholder={"Quantidade"}
                         value={quantidade}
@@ -179,9 +213,18 @@ export const PageLancamento = () => {
                         style={styles.input}
                         required
                     />
-                    
+
                     <button type={"submit"} style={styles.button}>
                         Enviar
+                    </button>
+                    
+                    <button 
+                        type={"button"} 
+                        onClick={limparLancamentos} 
+                        style={styles.clearButton}
+                        disabled={produtos.length === 0}
+                    >
+                        Limpar Lançamentos
                     </button>
                 </form>
             </section>
